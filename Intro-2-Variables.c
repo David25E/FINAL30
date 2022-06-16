@@ -70,7 +70,7 @@ int main(void)
 
         if(range < 105){
             BEEPER = !BEEPER;
-
+            __delay_us(956);
         }
         
 
