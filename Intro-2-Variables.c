@@ -18,6 +18,7 @@
 
 #include    "xc.h"              // Microchip XC8 compiler include file
 #include    "stdint.h"          // Include integer definitions
+#include    "stdio.h"
 #include    "stdbool.h"         // Include Boolean (true/false) definitions
 
 #include    "UBMP4.h"           // Include UBMP4 constants and functions
@@ -41,40 +42,38 @@ int main(void)
     OSC_config();               // Configure internal oscillator for 48 MHz
     UBMP4_config();             // Configure on-board UBMP4 I/O devices
     Lcd_Init();
-    
+    char buffer[20];
     //T1CON  = 0x10;        // set Timer1 clock source to internal with 1:2 prescaler (Timer1 clock = 1MHz)
     //TMR1H  = 0;           // reset Timer1
     //TMR1L  = 0;
-    
     
     while(1)
 	{
         if(sonar_ready())
         {
-            range = sonar_range_cm();
+            range = sonar_range_cm() + 3;
         }
         // Delay between SONAR pings
         __delay_ms(25);
         
-        if(range > 24 && range < 254){
-            Lcd_Clear();
+        if(range > 24 && range < 253){
+            sprintf(&buffer, "%03d cm  :Depth", range);
             Lcd_Set_Cursor(1, 1);
-            Lcd_Write_String("Depth:");
-            Lcd_Set_Cursor(1, 8);
-            Lcd_Write_Char(range);
+            Lcd_Write_String(buffer);
         }
-        else{
+        if(range < 28){
             Lcd_Clear();
             Lcd_Set_Cursor(1, 1);
             Lcd_Write_String("Out of Range");
         }
         __delay_ms(700);
+
         if(range < 105){
-            BEEPER = 1;
-            __delay_us(567);
-            BEEPER = 0;
-            __delay_us(567);
+            BEEPER = !BEEPER;
+
         }
+        
+
         
         // Activate bootloader if SW1 is pressed.
         if(SW1 == 0)
