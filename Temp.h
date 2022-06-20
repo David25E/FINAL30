@@ -16,7 +16,7 @@ void Start_Signal(void) {
 }
  
 // Check sensor response
-__bit Check_Response() {
+  __bit Check_Response() {
   TMR1H = 0;                 // reset Timer1
   TMR1L = 0;
   TMR1ON = 1;                // enable Timer1 module

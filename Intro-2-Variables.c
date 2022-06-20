@@ -12,13 +12,13 @@
  simulating a real-world toggle button, and counting switch contact bounce.
 ==============================================================================*/
 // set configuration words
-
-
+#define LaserPin H1OUT
 #define _XTAL_FREQ 4000000
 
 #include    "xc.h"              // Microchip XC8 compiler include file
 #include    "stdint.h"          // Include integer definitions
 #include    "stdio.h"
+#include    "stdlib.h"
 #include    "stdbool.h"         // Include Boolean (true/false) definitions
 
 #include    "UBMP4.h"           // Include UBMP4 constants and functions
@@ -26,32 +26,29 @@
 #include    "lcd.h"
 #include    "Temp.h"
 
-
 // TODO Set linker ROM ranges to 'default,-0-7FF' under "Memory model" pull-down.
 // TODO Set linker code offset to '800' under "Additional options" pull-down.
 
 // Program variable definitions
 unsigned char range = 0;        // SONAR target range
+unsigned char rawADC;
+
 // variables declaration
 char Temperature[] = "Temp = 00.0 C  ";
 char Humidity[]    = "RH   = 00.0 %  ";
 unsigned char T_Byte1, T_Byte2, RH_Byte1, RH_Byte2, CheckSum ;
- 
-int main(void)
-{
-    OSC_config();               // Configure internal oscillator for 48 MHz
-    UBMP4_config();             // Configure on-board UBMP4 I/O devices
-    Lcd_Init();
-    char buffer[20];
-    //T1CON  = 0x10;        // set Timer1 clock source to internal with 1:2 prescaler (Timer1 clock = 1MHz)
-    //TMR1H  = 0;           // reset Timer1
-    //TMR1L  = 0;
-    
-    while(1)
-	{
-        if(sonar_ready())
+char buffer[20];
+
+/*void Activate_Ambient(){
+    LaserPin = 1;
+    rawADC = ADC_read();
+    LATC = rawADC();   
+}
+*/
+void Display_Depth(){
+    if(sonar_ready())
         {
-            range = sonar_range_cm() + 3;
+            range = sonar_range_cm();
         }
         // Delay between SONAR pings
         __delay_ms(25);
@@ -67,23 +64,24 @@ int main(void)
             Lcd_Write_String("Out of Range");
         }
         __delay_ms(700);
-
-        if(range < 105){
-            BEEPER = !BEEPER;
-            __delay_us(956);
-        }
-        
-
-        
-        // Activate bootloader if SW1 is pressed.
-        if(SW1 == 0)
-        {
-            RESET();
-        }
-    }
 }
-/* 
-Start_Signal();     // send start signal to the sensor
+
+
+
+int main(void)
+{
+    OSC_config();               // Configure internal oscillator for 48 MHz
+    UBMP4_config();             // Configure on-board UBMP4 I/O devices
+    Lcd_Init();
+
+    T1CON  = 0x10;        // set Timer1 clock source to internal with 1:2 prescaler (Timer1 clock = 1MHz)
+    TMR1H  = 0;           // reset Timer1
+    TMR1L  = 0;
+    
+    
+    while(1)
+	{
+        Start_Signal();     // send start signal to the sensor
         
         if(Check_Response())    // check if there is a response from sensor (If OK start reading humidity and temperature data)
         {
@@ -124,16 +122,24 @@ Start_Signal();     // send start signal to the sensor
         else
         {
             Lcd_Clear();// clear LCD
-            Lcd_Set_Cursor(1, 1);           // go to column 3, row 1
+            Lcd_Set_Cursor(2, 1);           // go to column 3, row 1
             Lcd_Write_String("No response");
-            Lcd_Set_Cursor(2, 1);           // go to column 1, row 2
+            Lcd_Set_Cursor(3, 1);           // go to column 1, row 2
             Lcd_Write_String("from the sensor");
     }
     
         TMR1ON = 0;        // disable Timer1 module
-        __delay_ms(1000);  // wait 1 second
-    
-*/
+        __delay_ms(1000);  // wait 1 second 
+      
+
+        // Activate bootloader if SW1 is pressed.
+        if(SW1 == 0)
+        {
+            RESET();
+        }
+    }
+}
+
 
 
         

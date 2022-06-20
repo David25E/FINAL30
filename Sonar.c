@@ -51,3 +51,11 @@ unsigned char sonar_range_cm(void)
 	}
 	return(cm);                 // ...return range at end of ECHO
 }
+
+void Depth_Alarm(){
+    if(sonar_range_cm() < 105){
+            BEEPER = !BEEPER;
+            __delay_us(956);
+        }
+}
+
