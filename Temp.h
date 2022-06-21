@@ -1,6 +1,6 @@
 // DHT11 sensor connection (here data pin is connected to RB0)
-#define DHT11_PIN      RB5
-#define DHT11_PIN_DIR  LATB5
+#define DHT11_PIN      PORTBbits.RB5
+#define DHT11_PIN_DIR  TRISBbits.TRISB5
 
 
 // send start signal to the sensor

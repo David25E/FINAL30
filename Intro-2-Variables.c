@@ -12,7 +12,6 @@
  simulating a real-world toggle button, and counting switch contact bounce.
 ==============================================================================*/
 // set configuration words
-#define LaserPin H1OUT
 #define _XTAL_FREQ 4000000
 
 #include    "xc.h"              // Microchip XC8 compiler include file
@@ -31,7 +30,6 @@
 
 // Program variable definitions
 unsigned char range = 0;        // SONAR target range
-unsigned char rawADC;
 
 // variables declaration
 char Temperature[] = "Temp = 00.0 C  ";
@@ -39,12 +37,6 @@ char Humidity[]    = "RH   = 00.0 %  ";
 unsigned char T_Byte1, T_Byte2, RH_Byte1, RH_Byte2, CheckSum ;
 char buffer[20];
 
-/*void Activate_Ambient(){
-    LaserPin = 1;
-    rawADC = ADC_read();
-    LATC = rawADC();   
-}
-*/
 void Display_Depth(){
     if(sonar_ready())
         {
@@ -66,21 +58,14 @@ void Display_Depth(){
         __delay_ms(700);
 }
 
+void Depth_Alarm(){
+    if(range < 105){
+            BEEPER = !BEEPER;
+            __delay_us(956);
+        }
+}
 
-
-int main(void)
-{
-    OSC_config();               // Configure internal oscillator for 48 MHz
-    UBMP4_config();             // Configure on-board UBMP4 I/O devices
-    Lcd_Init();
-
-    T1CON  = 0x10;        // set Timer1 clock source to internal with 1:2 prescaler (Timer1 clock = 1MHz)
-    TMR1H  = 0;           // reset Timer1
-    TMR1L  = 0;
-    
-    
-    while(1)
-	{
+void Display_Temp_Hum(){
         Start_Signal();     // send start signal to the sensor
         
         if(Check_Response())    // check if there is a response from sensor (If OK start reading humidity and temperature data)
@@ -117,7 +102,7 @@ int main(void)
                         Lcd_Write_String("Checksum Error!");
                         }
                 }
-    }
+        }
     // if there is a response (from the sensor) problem
         else
         {
@@ -129,9 +114,23 @@ int main(void)
     }
     
         TMR1ON = 0;        // disable Timer1 module
-        __delay_ms(1000);  // wait 1 second 
-      
+        __delay_ms(1000);  // wait 1 second
+}
 
+int main(void)
+{
+    OSC_config();               // Configure internal oscillator for 48 MHz
+    UBMP4_config();             // Configure on-board UBMP4 I/O devices
+    Lcd_Init();
+    T1CON  = 0x10;        // set Timer1 clock source to internal with 1:2 prescaler (Timer1 clock = 1MHz)
+    TMR1H  = 0;           // reset Timer1
+    TMR1L  = 0;
+    
+    while(1)
+	{
+        Display_Depth();
+
+        
         // Activate bootloader if SW1 is pressed.
         if(SW1 == 0)
         {

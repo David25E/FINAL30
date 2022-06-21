@@ -33,29 +33,25 @@ bool sonar_ready(void)
 
 unsigned char sonar_range_cm(void)
 {
-    unsigned char cm = 0;       // Clear cm range counter
+    float cm = 0;       // Clear cm range counter
     const char max_range = 253; // Set maximum range for objects (must be <= 255)
     
+    cm = 1464 * 0.225;
 	TRIG = 1;                   // TRIGger a new SONAR ping
 	__delay_us(25);
 	TRIG = 0;
 	while(ECHO == 0){
     };           // Wait for the ping transmission to finish
-	__delay_us(10);
+	
     while(ECHO == 1)            // Determine range by timing received ECHO pulse
 	{
 		__delay_us(14);			// 2cm speed of sound delay = 1cm distance to
-        cm ++;                  // account for ping travel to target and back
+        cm ++;
+        // account for ping travel to target and back
 		if(cm == max_range)     // Return 0 at max_range before ECHO ends, or...
 			return(0);
 	}
 	return(cm);                 // ...return range at end of ECHO
 }
 
-void Depth_Alarm(){
-    if(sonar_range_cm() < 105){
-            BEEPER = !BEEPER;
-            __delay_us(956);
-        }
-}
 
