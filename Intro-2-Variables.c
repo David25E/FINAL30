@@ -30,11 +30,6 @@
 
 // Program variable definitions
 unsigned char range = 0;        // SONAR target range
-
-// variables declaration
-char Temperature[] = "Temp = 00.0 C  ";
-char Humidity[]    = "RH   = 00.0 %  ";
-unsigned char T_Byte1, T_Byte2, RH_Byte1, RH_Byte2, CheckSum ;
 char buffer[20];
 
 void Display_Depth(){
@@ -58,77 +53,95 @@ void Display_Depth(){
         __delay_ms(700);
 }
 
-void Depth_Alarm(){
-    if(range < 105){
-            BEEPER = !BEEPER;
-            __delay_us(956);
-        }
-}
 
-void Display_Temp_Hum(){
-        Start_Signal();     // send start signal to the sensor
-        
-        if(Check_Response())    // check if there is a response from sensor (If OK start reading humidity and temperature data)
-        {
-            // read (and save) data from the DHT11 sensor and check time out errors
-            if(Read_Data(&RH_Byte1) || Read_Data(&RH_Byte2) || Read_Data(&T_Byte1) || Read_Data(&T_Byte2) || Read_Data(&CheckSum))
-            {
-                Lcd_Clear();       // clear LCD
-                Lcd_Set_Cursor(2, 1);           // go to column 5, row 2
-                Lcd_Write_String("Time out!");   // display "Time out!"
-                }
-                
-                else         // if there is no time out error
-                {
-                    if(CheckSum == ((RH_Byte1 + RH_Byte2 + T_Byte1 + T_Byte2) & 0xFF))
-                    {                                       // if there is no checksum error
-                    Temperature[7]  = T_Byte1 / 10  + '0';
-                    Temperature[8]  = T_Byte1 % 10  + '0';
-                    Temperature[10] = T_Byte2 / 10  + '0';
-                    Humidity[7]     = RH_Byte1 / 10 + '0';
-                    Humidity[8]     = RH_Byte1 % 10 + '0';
-                    Humidity[10]    = RH_Byte2 / 10 + '0';
-                    Temperature[11] = 223;    // put degree symbol (°)
-                    Lcd_Set_Cursor(2, 1);           // go to column 1, row 1
-                    Lcd_Write_String(Temperature);
-                    Lcd_Set_Cursor(3, 1);           // go to column 1, row 2
-                    Lcd_Write_String(Humidity);
-                    }
-                    // if there is a checksum error
-                    else
-                    {
-                        Lcd_Clear();       // clear LCD
-                        Lcd_Set_Cursor(2, 1);           // go to column 1, row 1
-                        Lcd_Write_String("Checksum Error!");
-                        }
-                }
-        }
-    // if there is a response (from the sensor) problem
-        else
-        {
-            Lcd_Clear();// clear LCD
-            Lcd_Set_Cursor(2, 1);           // go to column 3, row 1
-            Lcd_Write_String("No response");
-            Lcd_Set_Cursor(3, 1);           // go to column 1, row 2
-            Lcd_Write_String("from the sensor");
-    }
-    
-        TMR1ON = 0;        // disable Timer1 module
-        __delay_ms(1000);  // wait 1 second
-}
+
+
 
 int main(void)
 {
     OSC_config();               // Configure internal oscillator for 48 MHz
     UBMP4_config();             // Configure on-board UBMP4 I/O devices
     Lcd_Init();
-    T1CON  = 0x10;        // set Timer1 clock source to internal with 1:2 prescaler (Timer1 clock = 1MHz)
-    TMR1H  = 0;           // reset Timer1
-    TMR1L  = 0;
-    
+
     while(1)
 	{
         Display_Depth();
+        dht11_init();
+
+        find_response();
+
+        if(Check_bit == 1){
+            
+            RH_byte_1 = read_dht11();
+            
+            RH_byte_2 = read_dht11();
+            
+            Temp_byte_1 = read_dht11();
+            
+            Temp_byte_2 = read_dht11();
+            
+            Sumation = read_dht11();
+
+        if(Sumation == ((RH_byte_1+RH_byte_2+Temp_byte_1+Temp_byte_2) & 0XFF)){
+
+            Humidity = Temp_byte_1;
+
+            RH = RH_byte_1;                        
+
+            Lcd_Set_Cursor(2, 1);
+
+            Lcd_Write_String("Temp: ");
+
+            //lcd_puts("                ");
+
+            Lcd_Write_String(48 + ((Humidity / 10) % 10));
+
+            Lcd_Write_String(48 + (Humidity % 10));
+
+            Lcd_Set_Cursor(2, 9);
+
+            Lcd_Write_String("C   ");
+
+            Lcd_Set_Cursor(3, 1);            
+
+            Lcd_Write_String("Humidity: ");
+
+             //lcd_puts("                ");
+
+            Lcd_Write_String(48 + ((RH / 10) % 10));
+
+            Lcd_Write_String(48 + (RH % 10));
+            
+            Lcd_Set_Cursor(3, 11);
+
+            Lcd_Write_String("%  ");
+
+            }
+
+        else{
+            Lcd_Set_Cursor(2, 1);
+            Lcd_Write_String("Check sum error");
+
+        }
+
+    }
+    
+    else {
+
+        Lcd_Clear();
+
+        Lcd_Set_Cursor(2, 1);
+
+        Lcd_Write_String("Error!!!");
+
+        Lcd_Set_Cursor(3, 1);
+
+        Lcd_Write_String("No Response.");
+
+     }
+
+    __delay_ms(1000);
+        
 
         
         // Activate bootloader if SW1 is pressed.

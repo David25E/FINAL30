@@ -1,72 +1,95 @@
-// DHT11 sensor connection (here data pin is connected to RB0)
-#define DHT11_PIN      PORTBbits.RB5
-#define DHT11_PIN_DIR  TRISBbits.TRISB5
+#define DHT11_Data_Pin            LATBbits.LATB5
+
+#define DHT11_Data_Pin_Direction  TRISBbits.TRISB5
+
+unsigned char Check_bit, Temp_byte_1, Temp_byte_2, RH_byte_1, RH_byte_2;
+
+unsigned char Humidity, RH, Sumation ;
+
+void dht11_init(){
+    DHT11_Data_Pin_Direction= 0; //Configure RD0 as output
+    
+    DHT11_Data_Pin = 0; //RD0 sends 0 to the sensor
+    
+    __delay_ms(16);
+    
+    DHT11_Data_Pin = 1; //RD0 sends 1 to the sensor
+    
+    __delay_us(30);
+    
+    DHT11_Data_Pin_Direction = 1; //Configure RD0 as input
+    
+    }
+
+ 
+/*
+
+ * This will find the dht11 sensor is working or not.
+
+ */
 
 
-// send start signal to the sensor
-void Start_Signal(void) {
-  DHT11_PIN_DIR = 0;     // configure DHT11_PIN as output
-  DHT11_PIN = 0;         // clear DHT11_PIN output (logic 0)
+ void find_response(){
+
+ Check_bit = 0;
+
+ __delay_us(80);
+
+ if (DHT11_Data_Pin == 0){
+
+ __delay_us(80);
+
+ if (DHT11_Data_Pin == 1){
+
+    Check_bit = 1;
+
+ }     
+
+ __delay_us(50);
+ }
+
+ }
+
  
-  __delay_ms(25);        // wait 25 ms
-  DHT11_PIN = 1;         // set DHT11_PIN output (logic 1)
+
+ /*
+
+ This Function is for read dht11.
+
+ */
+
  
-  __delay_us(30);        // wait 30 us
-  DHT11_PIN_DIR = 1;     // configure DHT11_PIN as input
-}
+
+ char read_dht11(){
+
+ char data, for_count;
+
+ for(for_count = 0; for_count < 8; for_count++){
+
+     while(!DHT11_Data_Pin); 
+
+    __delay_us(26);
+
+    if(DHT11_Data_Pin == 0){
+
+        data&= ~(1<<(7 - for_count)); //Clear bit (7-b)
+
+    }
+
+    else{
+
+        data|= (1 << (7 - for_count)); //Set bit (7-b)
+
+        while(DHT11_Data_Pin);
+
+    } //Wait until PORTD.F0 goes LOW
+
+    }
+
+ return data;
+
+ }
+
  
-// Check sensor response
-  __bit Check_Response() {
-  TMR1H = 0;                 // reset Timer1
-  TMR1L = 0;
-  TMR1ON = 1;                // enable Timer1 module
- 
-  while(!DHT11_PIN && TMR1L < 100);  // wait until DHT11_PIN becomes high (checking of 80µs low time response)
- 
-  if(TMR1L > 99)                     // if response time > 99µS  ==> Response error
-    return 0;                        // return 0 (Device has a problem with response)
- 
-  else
-  {
-    TMR1H = 0;               // reset Timer1
-    TMR1L = 0;
- 
-    while(DHT11_PIN && TMR1L < 100); // wait until DHT11_PIN becomes low (checking of 80µs high time response)
- 
-    if(TMR1L > 99)                   // if response time > 99µS  ==> Response error
-      return 0;                      // return 0 (Device has a problem with response)
- 
-    else
-      return 1;                      // return 1 (response OK)
-  }
-}
- 
-// Data read function
-__bit Read_Data(unsigned char* dht_data)
-{
-  *dht_data = 0;
- 
-  for(char i = 0; i < 8; i++)
-  {
-    TMR1H = 0;             // reset Timer1
-    TMR1L = 0;
- 
-    while(!DHT11_PIN)      // wait until DHT11_PIN becomes high
-      if(TMR1L > 100) {    // if low time > 100  ==>  Time out error (Normally it takes 50µs)
-        return 1;
-      }
- 
-    TMR1H = 0;             // reset Timer1
-    TMR1L = 0;
- 
-    while(DHT11_PIN)       // wait until DHT11_PIN becomes low
-      if(TMR1L > 100) {    // if high time > 100  ==>  Time out error (Normally it takes 26-28µs for 0 and 70µs for 1)
-        return 1;          // return 1 (timeout error)
-      }
- 
-     if(TMR1L > 50)                  // if high time > 50  ==>  Sensor sent 1
-       *dht_data |= (1 << (7 - i));  // set bit (7 - i)
-  }
- 
-  return 0;                          // return 0 (data read OK)
-}
+
+

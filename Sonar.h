@@ -44,6 +44,6 @@ bool sonar_ready(void);
 unsigned char sonar_range_cm(void);
 
 
-
+unsigned char Depth_Alarm(void);
 
 #endif
