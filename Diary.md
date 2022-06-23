@@ -99,5 +99,5 @@ Fortunately, out of no where it worked the same way as it worked last week. Thus
 It worked with about a 12cm difference of the actual distance, so I add 12cm to the range if it is over 100cm to eliminate the constant.
 
 
-Overall, I learned a significant amount and gained a tremendous amount of interest in programming and electronics. I extremely enjoyed this project and will definitely continute improvng and adding to it during the summer.
+Overall, I learned a significant amount and gained a tremendous amount of interest in programming and electronics. I extremely enjoyed this project and will definitely continue improve to upon it during the summer.
 Thank You, Mr. Lam.
