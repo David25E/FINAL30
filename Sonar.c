@@ -30,7 +30,7 @@ bool sonar_ready(void)
 
 // Return the distance to the nearest object in cm. Set max_range to ignore
 // objects beyond the specified range.
-unsigned char Int_range = 0;
+
 unsigned char sonar_range_cm(void)
 {
     unsigned char cm = 0;       // Clear cm range counter
@@ -41,27 +41,21 @@ unsigned char sonar_range_cm(void)
 	TRIG = 0;
 	while(ECHO == 0){
     };           // Wait for the ping transmission to finish
-	
+	__delay_us(10);                                                                        ///In air this is not needed
     while(ECHO == 1)            // Determine range by timing received ECHO pulse
 	{
-        __delay_us(43);			// 2cm speed of sound delay = 1cm distance to
+        __delay_us(14);			// 2cm speed of sound delay = 1cm distance to              ///58us in air
         cm ++;
         // account for ping travel to target and back
-		if(cm == 82 && cm == max_range)     // Return 0 at max_range before ECHO ends, or...
+		if(cm == max_range)     // Return 0 at max_range before ECHO ends, or...
 			return(0);
 	}
 	return(cm);                 // ...return range at end of ECHO
 }
 
-unsigned char Depth_Alarm(void){
-    if(sonar_ready()){
-        Int_range = sonar_range_cm();
-    }
-    if(Int_range < 105){
-        BEEPER = !BEEPER;
-        __delay_us(956);
-            }
-}
+
+
+
 
 
 
